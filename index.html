@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#6d5dfc" />
+  <meta name="description" content="KidVerse Demo — belajar untuk membuka permainan." />
+  <title>KidVerse Demo</title>
+
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./assets/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand-mark" aria-hidden="true">K</div>
+        <div>
+          <h1>KidVerse</h1>
+          <p>Belajar untuk membuka petualangan</p>
+        </div>
+      </div>
+
+      <div class="hud" aria-label="Status pemain">
+        <div class="hud-chip"><span>🪙</span><strong id="coinValue">0</strong></div>
+        <div class="hud-chip"><span>⭐</span><strong id="xpValue">0</strong></div>
+        <div class="hud-chip level-chip"><span>Lv</span><strong id="levelValue">1</strong></div>
+      </div>
+    </header>
+
+    <main class="game-layout">
+      <section class="game-panel" aria-label="Dunia KidVerse">
+        <div class="canvas-wrap">
+          <canvas id="worldCanvas" width="960" height="540" aria-label="Dunia permainan dua dimensi"></canvas>
+
+          <div class="mission-card" id="missionCard">
+            <span class="mission-icon" aria-hidden="true">🎯</span>
+            <div>
+              <strong id="missionTitle">Misi pertama</strong>
+              <p id="missionText">Pergi ke sekolah dan selesaikan 3 soal.</p>
+            </div>
+          </div>
+
+          <button id="soundButton" class="round-button sound-button" type="button" aria-label="Aktifkan atau matikan suara">🔊</button>
+
+          <div class="mobile-controls" aria-label="Kontrol karakter">
+            <button class="control-button up" data-direction="up" type="button" aria-label="Bergerak ke atas">▲</button>
+            <button class="control-button left" data-direction="left" type="button" aria-label="Bergerak ke kiri">◀</button>
+            <button class="control-button action" id="actionButton" type="button" aria-label="Berinteraksi">A</button>
+            <button class="control-button right" data-direction="right" type="button" aria-label="Bergerak ke kanan">▶</button>
+            <button class="control-button down" data-direction="down" type="button" aria-label="Bergerak ke bawah">▼</button>
+          </div>
+        </div>
+
+        <div class="tip-bar">
+          <div><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> untuk berjalan</div>
+          <div><kbd>E</kbd> atau tombol <strong>A</strong> untuk berinteraksi</div>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <section class="panel-card player-card">
+          <div class="avatar-preview" id="avatarPreview" aria-hidden="true">
+            <span class="avatar-head"></span>
+            <span class="avatar-body"></span>
+          </div>
+          <div>
+            <span class="eyebrow">Pemain</span>
+            <h2>Penjelajah Cilik</h2>
+            <p id="progressText">0 dari 3 soal benar</p>
+          </div>
+          <div class="progress-track" aria-label="Progres menuju level berikutnya">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </section>
+
+        <section class="panel-card location-card">
+          <span class="eyebrow">Tempat yang dapat dikunjungi</span>
+          <div class="location-list">
+            <div class="location-item">
+              <span class="location-icon school">🏫</span>
+              <div><strong>Sekolah Pintar</strong><small>Selesaikan kuis</small></div>
+            </div>
+            <div class="location-item">
+              <span class="location-icon park">🎡</span>
+              <div><strong>Taman Bintang</strong><small id="parkStatus">Terkunci</small></div>
+            </div>
+            <div class="location-item">
+              <span class="location-icon home">🏠</span>
+              <div><strong>Rumah</strong><small>Tempat beristirahat</small></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel-card">
+          <span class="eyebrow">Tentang demo</span>
+          <p class="body-copy">Semua gambar dibuat langsung oleh kode Canvas. Tidak ada aset berbayar atau file game dari pihak lain.</p>
+          <button id="resetButton" class="secondary-button" type="button">Reset progres</button>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="dialogBackdrop" role="presentation">
+    <section class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+      <div class="dialog-icon" id="dialogIcon">✨</div>
+      <h2 id="dialogTitle">Selamat datang!</h2>
+      <p id="dialogText">Ayo mulai petualangan.</p>
+      <div class="dialog-actions" id="dialogActions"></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop hidden" id="quizBackdrop" role="presentation">
+    <section class="quiz-dialog" role="dialog" aria-modal="true" aria-labelledby="quizTitle">
+      <div class="quiz-topline">
+        <span class="quiz-badge">Sekolah Pintar</span>
+        <button id="closeQuizButton" class="icon-button" type="button" aria-label="Tutup kuis">×</button>
+      </div>
+      <h2 id="quizTitle">Tantangan Matematika</h2>
+      <p id="quizInstruction">Jawab 3 soal untuk membuka Taman Bintang.</p>
+
+      <div class="quiz-progress" id="quizProgress" aria-label="Progres kuis"></div>
+      <div class="question-box">
+        <span>Berapa hasilnya?</span>
+        <strong id="questionText">2 + 3 = ?</strong>
+      </div>
+      <div class="answer-grid" id="answerGrid"></div>
+      <p class="feedback" id="quizFeedback" aria-live="polite"></p>
+    </section>
+  </div>
+
+  <div class="modal-backdrop hidden" id="miniGameBackdrop" role="presentation">
+    <section class="minigame-dialog" role="dialog" aria-modal="true" aria-labelledby="miniGameTitle">
+      <div class="minigame-header">
+        <div>
+          <span class="quiz-badge">Taman Bintang</span>
+          <h2 id="miniGameTitle">Tangkap Bintang!</h2>
+        </div>
+        <div class="minigame-header-actions">
+          <div class="minigame-stats">
+            <span>⏱️ <strong id="timeValue">25</strong></span>
+            <span>⭐ <strong id="scoreValue">0</strong></span>
+          </div>
+          <button id="closeMiniGameButton" class="icon-button" type="button" aria-label="Tutup mini-game">×</button>
+        </div>
+      </div>
+
+      <canvas id="miniGameCanvas" width="760" height="420" aria-label="Mini-game menangkap bintang"></canvas>
+      <p class="minigame-help">Gerakkan keranjang dengan tombol kiri dan kanan. Tangkap bintang, hindari batu.</p>
+
+      <div class="minigame-controls">
+        <button class="game-control" data-game-direction="left" type="button">◀ Kiri</button>
+        <button class="game-control primary" id="startMiniGameButton" type="button">Mulai</button>
+        <button class="game-control" data-game-direction="right" type="button">Kanan ▶</button>
+      </div>
+    </section>
+  </div>
+
+  <noscript>Aplikasi ini memerlukan JavaScript untuk dimainkan.</noscript>
+  <script src="./js/game.js" defer></script>
+</body>
+</html>
